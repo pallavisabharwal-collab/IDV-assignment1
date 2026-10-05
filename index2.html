@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Pollution Standards Index</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+            color: #1E90FF;
+        }
+
+        p {
+            color: #151B54;
+        }
+
+        button {
+            padding: 8px 15px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            background: #1E90FF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background: #151B54;
+        }
+
+        table {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background: #151B54;
+            color: white;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <h1>Pollution Standards Index</h1>
+
+    <p>
+        Singapore
+    </p>
+
+    <p id="status">
+        Loading data...
+    </p>
+
+    <button onclick="loadData()">
+        Refresh
+    </button>
+
+
+    <table>
+
+        <thead>
+
+            <tr>
+                <th>Reading</th>
+                <th>North</th>
+                <th>South</th>
+                <th>East</th>
+                <th>West</th>
+                <th>Central</th>
+            </tr>
+
+        </thead>
+
+
+        <tbody id="psi-table">
+
+            <tr>
+                <td colspan="6">
+                    Loading...
+                </td>
+            </tr>
+
+        </tbody>
+
+    </table>
+
+
+    <p>
+        Source:
+        <a
+            href="https://data.gov.sg/datasets/d_fe37906a0182569d891506e815e819b7/view"
+            target="_blank">
+            data.gov.sg
+        </a>
+    </p>
+
+
+    <script>
+
+        const API_URL =
+            "https://api-open.data.gov.sg/v2/real-time/api/psi";
+
+
+        async function loadData() {
+
+            const status =
+                document.getElementById("status");
+
+            const table =
+                document.getElementById("psi-table");
+
+
+            status.textContent =
+                "Loading data...";
+
+
+            try {
+
+                const response =
+                    await fetch(API_URL);
+
+
+                if (!response.ok) {
+                    throw new Error("API error");
+                }
+
+
+                const data =
+                    await response.json();
+
+
+                console.log(data);
+
+
+                // Get the latest reading
+
+                const readings =
+                    data.data.items[0].readings;
+
+
+                console.log(readings);
+
+
+                // Clear the table
+
+                table.innerHTML = "";
+
+
+                // List of Singapore regions
+
+                const regions = [
+                    "north",
+                    "south",
+                    "east",
+                    "west",
+                    "central"
+                ];
+
+
+                // Create one row for each reading
+
+                Object.entries(readings).forEach(
+                    ([name, values]) => {
+
+                        const row =
+                            document.createElement("tr");
+
+
+                        const nameCell =
+                            document.createElement("td");
+
+
+                        nameCell.textContent =
+                            formatName(name);
+
+
+                        row.appendChild(nameCell);
+
+
+                        regions.forEach(
+                            region => {
+
+                                const cell =
+                                    document.createElement("td");
+
+
+                                cell.textContent =
+                                    values[region] ?? "—";
+
+
+                                row.appendChild(cell);
+
+                            }
+                        );
+
+
+                        table.appendChild(row);
+
+                    }
+                );
+
+
+                status.textContent =
+                    "Data loaded successfully.";
+
+
+            }
+
+            catch (error) {
+
+                console.error(error);
+
+                status.textContent =
+                    "Unable to load data.";
+
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="6">
+                            Unable to load data.
+                        </td>
+                    </tr>
+                `;
+
+            }
+
+        }
+
+
+        // Make API names easier to read
+
+        function formatName(name) {
+
+            const names = {
+
+                "o3_sub_index":
+                    "O₃ Sub Index",
+
+                "co_sub_index":
+                    "CO Sub Index",
+
+                "so2_sub_index":
+                    "SO₂ Sub Index",
+
+                "no2_one_hour_max":
+                    "NO₂ One-Hour Maximum",
+
+                "pm10_sub_index":
+                    "PM10 Sub Index",
+
+                "pm25_sub_index":
+                    "PM2.5 Sub Index",
+
+                "pm10_twenty_four_hourly":
+                    "PM10 24-Hour",
+
+                "pm25_twenty_four_hourly":
+                    "PM2.5 24-Hour",
+
+                "so2_twenty_four_hourly":
+                    "SO₂ 24-Hour",
+
+                "co_eight_hour_max":
+                    "CO 8-Hour Maximum",
+
+                "o3_eight_hour_max":
+                    "O₃ 8-Hour Maximum",
+
+                "psi_twenty_four_hourly":
+                    "PSI 24-Hour"
+
+            };
+
+
+            return names[name] || name;
+
+        }
+
+
+        // Load the data when the page opens
+
+        loadData();
+
+    </script>
+
+</body>
+
+</html>
